@@ -8,7 +8,6 @@ from keras.preprocessing.image import ImageDataGenerator
 import numpy as np
 import time
 import pathlib
-import os
 
 class TrainClassifier:
     """
@@ -47,6 +46,7 @@ class TrainClassifier:
         :param path_to_dataset: a string representing the path to the existing image dataset
         :param model_location: string representing the location the saved model should be written to, must have .keras at end
         """
+        stop_condition = EarlyStopping(monitor='loss', min_delta=0.001, patience=10, mode='auto', restore_best_weights=True)
         write_over = True
         if pathlib.Path(model_location).exists():
             print ('This model already exists')
@@ -56,13 +56,12 @@ class TrainClassifier:
         if write_over == True:
             train_generator = self.classify_training(path_to_dataset)
             start = time.time()
-            self.model.fit(train_generator, epochs=10)
+            self.model.fit(train_generator, epochs=100, callbacks=stop_condition)
             end = time.time()
             self.model.save(model_location, overwrite=True)
             print (f'The model was trained in {(end-start)/60} minutes')
         else:
             print ('Program exiting...')
 
-# train_classifier = TrainClassifier()
-# model = train_classifier.train(path_to_dataset='image_dataset/seg_train/seg_train',
-# model_location='src/models/initial_model.keras')
+train_classifier = TrainClassifier()
+model = train_classifier.train(path_to_dataset='image_dataset/seg_train/seg_train', model_location='src/models/early_stop_0.001_10.keras')
